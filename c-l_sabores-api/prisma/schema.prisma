@@ -1,0 +1,94 @@
+generator client { 
+  provider = "prisma-client-js" 
+} 
+
+datasource db { 
+  provider = "sqlite" 
+  url      = env("DATABASE_URL") 
+} 
+
+enum Role {
+  Attendant
+  Cooker
+  Manager
+  CEO
+}
+
+enum Unit {
+  kg
+  g
+  L
+  mL
+}
+
+model Employee { 
+  id       Int      @id @default(autoincrement()) 
+  name     String 
+  email    String   @unique 
+  tel      String?
+  role     Role     @default(Attendant)
+}
+
+model Client { 
+  id       Int      @id @default(autoincrement()) 
+  name     String 
+  email    String   @unique 
+  tel      String?
+  orders    Order[]
+}
+
+model Ingredient {
+  id       Int      @id @default(autoincrement())
+  name     String
+  use      Recipe[]
+  quantity Stock[]
+}
+
+model Stock {
+  id       Int      @id @default(autoincrement())
+  ingredientId Int  @unique
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+  quantity Float    @default(0)
+  unit     Unit?
+  minQuantity Float @default(0)
+}
+
+model Menu {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String
+  price       Int
+  available   Boolean   @default(true)
+  orders      OrderItem[]
+  recipes     Recipe[]
+}
+
+model Recipe {
+  id       Int      @id @default(autoincrement())
+  ingredientId Int
+  dishId   Int
+  quantity Float
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+  dish     Menu     @relation(fields: [dishId], references: [id])
+
+  @@unique([ingredientId, dishId])
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  clientId  Int
+  client    Client      @relation(fields: [clientId], references: [id])
+  items     OrderItem[]
+  createdAt DateTime    @default(now())
+  status    String      @default("Pending")
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  itemId    Int
+  quantity  Int     @default(1)
+  unitPrice Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  item      Menu    @relation(fields: [itemId], references: [id])
+}
