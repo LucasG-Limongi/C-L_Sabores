@@ -1,0 +1,135 @@
+ENUNCIADO FINAL DO PROJETO — ETAPA DE ENCERRAMENTO
+Projeto Prático Aplicado: Finalização, Middlewares, Documentação e Entrega no Git
+Componente Curricular: Linguagem de Programação (CARLPRO) | IFSP Câmpus Caraguatatuba1
+Curso: Técnico em Informática Integrado ao Ensino Médio (Resolução CONSUP nº 6/2026)1
+Entrega do Código: Próxima semana | Apresentação ao Vivo: Semana seguinte
+🎯 1. Objetivo da Etapa Final
+Esta é a última etapa de desenvolvimento antes da apresentação final do semestre. Você e sua dupla deverão concluir a API construída nas Semanas 1 e 2 aplicando middlewares de validação e sanitização, organizar a documentação do projeto em Markdown, exportar os testes do Postman e publicar o código completo em um repositório remoto Git2more_horiz.
+🛡️ 2. Parte 1 — Blindagem Final da API (Middlewares Essenciais)
+Para garantir que a aplicação não quebre durante a apresentação ao vivo, implemente os 3 middlewares essenciais dentro da pasta src/middlewares/:
+A. Validação e Sanitização de Dados (validarDados.js)
+Crie um middleware na pasta src/middlewares/ para validar os campos obrigatórios antes de salvar no banco via Prisma (adaptando os nomes dos campos para o tema do seu grupo):// Exemplo para Post (adapte para o tema do seu grupo)
+function validarPost(req, res, next) {
+const { titulo, conteudo, autorId } = req.body;
+
+if (!titulo || typeof titulo !== 'string' || titulo.trim().length < 5) {
+return res.status(400).json({
+erro: "O título é obrigatório e deve ter no mínimo 5 caracteres."
+});
+}
+
+if (!conteudo || typeof conteudo !== 'string' || conteudo.trim() === "") {
+return res.status(400).json({
+erro: "O conteúdo não pode ficar em branco."
+});
+}
+
+if (req.method === 'POST') {
+const idNumerico = Number(autorId);
+if (!autorId || isNaN(idNumerico) || idNumerico <= 0) {
+return res.status(400).json({
+erro: "O 'autorId' é obrigatório e deve ser um número válido."
+});
+}
+req.body.autorId = idNumerico;
+}
+
+// Sanitização: remove espaços extras nas pontas
+req.body.titulo = titulo.trim();
+req.body.conteudo = conteudo.trim();
+
+next();
+}
+
+module.exports = validarPost;
+
+B. Validação de ID na URL (validarId.js)
+Protege as rotas GET /:id, PUT /:id e DELETE /:id contra parâmetros que não sejam números inteiros positivos:// src/middlewares/validarId.js
+function validarId(req, res, next) {
+const id = Number(req.params.id);
+
+if (isNaN(id) || !Number.isInteger(id) || id <= 0) {
+return res.status(400).json({
+erro: "ID inválido na URL. Utilize um número inteiro positivo."
+});
+}
+
+next();
+}
+
+module.exports = validarId;
+
+C. Middleware Global de Auditoria (logger.js)
+Exibe no terminal todas as requisições recebidas em tempo real (útil para mostrar o funcionamento do servidor durante a apresentação):// src/middlewares/logger.js
+function logger(req, res, next) {
+console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+next();
+}
+
+module.exports = logger;
+
+Lembrete: Registre app.use(logger); no src/server.js (logo abaixo de app.use(express.json());) e aplique validarId e validarPost (ou o validador do seu tema) nas rotas dentro de src/routes/.
+📝 3. Parte 2 — Organização, Documentação e Postman
+A. Revisão de Limpeza e Segurança (.gitignore)
+Antes de subir o código para a internet, crie (ou confira) o arquivo .gitignore na raiz do projeto (baseado no modelo disponibilizado na disciplina)5 para não enviar pastas pesadas ou arquivos locais sensíveis:node_modules/
+.env
+prisma/dev.db
+prisma/dev.db-journal
+
+B. Documentação em Markdown (README.md)
+Crie um arquivo README.md na raiz do projeto utilizando a sintaxe Markdown vista no material da disciplina26, contendo:# Nome do Projeto (Ex: PetShop API / BlogAPI)
+
+Breve descrição do sistema desenvolvido e qual problema ele resolve.
+
+## Integrantes do Grupo
+- Nome Completo 1
+- Nome Completo 2
+
+## Tecnologias Utilizadas
+- Node.js + Express
+- Prisma ORM + SQLite
+- Postman (Testes de API)
+
+## Como Rodar o Projeto
+1. Clone o repositório:
+`git clone <URL_DO_REPOSITORIO>`
+2. Instale as dependências:
+`npm install`
+3. Crie as tabelas do banco de dados:
+`npx prisma migrate dev`
+4. Inicie o servidor:
+`node src/server.js`
+
+## Rotas Principais da API
+- `GET /...` - Lista todos os registros
+- `GET /.../:id` - Busca um registro por ID
+- `POST /...` - Cadastra um novo registro
+- `PUT /.../:id` - Atualiza um registro
+- `DELETE /.../:id` - Remove um registro
+
+*(Opcional/Bônus: inclua o arquivo LICENSE com o modelo da Licença MIT disponibilizado no ambiente virtual da disciplina)*26.
+C. Exportando a Collection do Postman
+Para comprovar que todas as rotas funcionam (incluindo os erros 400 Bad Request barrados pelos middlewares):No Postman, certifique-se de que sua Collection contém requisições salvas para: POST, GET (todos e por ID), PUT, DELETE e pelo menos 2 testes de erro (dados inválidos).Clique nos três pontinhos ... ao lado do nome da sua Collection $\rightarrow$ Export $\rightarrow$ mantenha o formato recomendado e salve o arquivo .json na raiz do seu projeto (ex: collection-postman.json).
+🌐 4. Parte 3 — Publicação no Repositório Remoto (Git/GitHub)
+No terminal do VS Code (dentro da pasta raiz do projeto), execute os comandos para versionar e enviar a entrega final ao repositório remoto do time34:git init
+git add .
+git commit -m "Versao final da API com middlewares, README e collection do Postman"
+git branch -M main
+git remote add origin <LINK_DO_SEU_REPOSITORIO_NO_GITHUB>
+git push -u origin main
+
+(Caso o repositório já tenha sido inicializado anteriormente pelo grupo, execute apenas git add ., git commit -m "..." e git push).
+🎤 5. Guia da Apresentação Final (Semana Seguinte)
+Na próxima aula após o fechamento da entrega, cada dupla terá 8 a 10 minutos para apresentar o projeto funcionando ao vivo para o professor e para a turma.
+Roteiro Obrigatório da Apresentação:Contexto (1 a 2 min): Qual é o tema da API e quais são as duas tabelas relacionadas no schema.prisma.Estrutura do Código (2 min): Mostrar rapidamente no VS Code as pastas controllers/, routes/ e middlewares/ e o arquivo README.md.Demonstração ao Vivo no Postman (5 min):
+Executar um cadastro válido (POST) retornando 201 Created.
+Executar uma listagem (GET) mostrando os dados vinculados (include) com status 200 OK.
+Testar a proteção do Middleware: enviar propositalmente um dado inválido (ou ID inválido na URL) e mostrar a API barrando com 400 Bad Request.
+Executar uma atualização (PUT) e uma exclusão (DELETE).
+📊 6. Checklist Final de Entrega (Critérios de Avaliação)
+O projeto compõe a nota prática de encerramento do módulo (alinhado aos critérios de avaliação prática em laboratório e projeto de aplicação no repositório remoto)47:
+[ ] Banco e CRUD: schema.prisma com relacionamento 1:N e todas as 4 operações (POST, GET, PUT, DELETE) funcionando sem derrubar o servidor.
+[ ] Middlewares Ativos: Pelo menos 1 middleware de validação/sanitização, 1 validador de :id e o logger rodando no terminal.
+[ ] Postman Exportado: Arquivo .json da Collection salvo dentro do projeto com testes de sucesso e de erro.
+[ ] Documentação e Git: Repositório remoto publicado com .gitignore correto (sem node_modules) e README.md preenchido.
+[ ] Apresentação: Domínio da dupla ao explicar o fluxo entre rota, middleware, controller e Prisma durante a demonstração ao vivo.

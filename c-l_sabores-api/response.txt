@@ -1,0 +1,164 @@
+==============================================
+  TESTES COMPLETOS DE TODAS AS ROTAS DA API
+  C-L Sabores
+  Data: Mon Nov  9 08:04:21     2026
+==============================================
+
+==============================================
+  1. AUTENTICACAO (authRoutes)
+==============================================
+
+--- POST /auth/register (Manager) ---
+{"employee":{"id":11,"name":"Carlos Manager","email":"carlos@teste.com","role":"Manager","tel":null}}
+
+--- POST /auth/register (Attendant) ---
+{"employee":{"id":12,"name":"Maria Atendente","email":"maria@teste.com","role":"Attendant","tel":null}}
+
+--- POST /auth/login (Manager) ---
+{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZUlkIjoxMSwiZW1haWwiOiJjYXJsb3NAdGVzdGUuY29tIiwicm9sZSI6Ik1hbmFnZXIiLCJpYXQiOjE3OTQyMjIyNjIsImV4cCI6MTc5NDgyNzA2Mn0.jTjHEHIWWwChLgKTNUqjpnkAclHcIJMsHnqgNWnOh2E","employee":{"id":11,"name":"Carlos Manager","email":"carlos@teste.com","role":"Manager"}}
+TOKEN_MANAGER: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZUlkIjoxMSwiZW1haWwiOiJjYXJsb3NAdGVzdGUuY29tIiwicm9sZSI6Ik1hbmFnZXIiLCJpYXQiOjE3OTQyMjIyNjIsImV4cCI6MTc5NDgyNzA2Mn0.jTjHEHIWWwChLgKTNUqjpnkAclHcIJMsHnqgNWnOh2E
+
+--- POST /auth/login (Attendant) ---
+{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZUlkIjoxMiwiZW1haWwiOiJtYXJpYUB0ZXN0ZS5jb20iLCJyb2xlIjoiQXR0ZW5kYW50IiwiaWF0IjoxNzk0MjIyMjYyLCJleHAiOjE3OTQ4MjcwNjJ9.P-g0Rb8ZkKefB3eRo8nOnIy2rLpyLdOIUDxkfEavBYw","employee":{"id":12,"name":"Maria Atendente","email":"maria@teste.com","role":"Attendant"}}
+TOKEN_ATTENDANT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZUlkIjoxMiwiZW1haWwiOiJtYXJpYUB0ZXN0ZS5jb20iLCJyb2xlIjoiQXR0ZW5kYW50IiwiaWF0IjoxNzk0MjIyMjYyLCJleHAiOjE3OTQ4MjcwNjJ9.P-g0Rb8ZkKefB3eRo8nOnIy2rLpyLdOIUDxkfEavBYw
+
+--- POST /auth/login (senha errada - deve falhar) ---
+{"error":"Credenciais inválidas."}
+--- POST /auth/register (email duplicado - deve falhar) ---
+{"error":"Email já cadastrado."}
+
+==============================================
+  2. MENU (menuRoutes) - apenas CEO
+==============================================
+
+--- POST /menu (como Manager - deve falhar 403) ---
+{"error":"Acesso negado: permissão insuficiente."}
+--- POST /menu (sem token - deve falhar 401) ---
+{"error":"Token de autenticação não fornecido."}
+--- POST /menu (como CEO) ---
+{"employee":{"id":13,"name":"CEO Teste","email":"ceo@teste.com","role":"CEO","tel":null}}
+{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZUlkIjoxMywiZW1haWwiOiJjZW9AdGVzdGUuY29tIiwicm9sZSI6IkNFTyIsImlhdCI6MTc5NDIyMjI2MiwiZXhwIjoxNzk0ODI3MDYyfQ.sSEFQU75T5U9aaXJL-XJLkZTPczsApci9As71zQQ6Nc","employee":{"id":13,"name":"CEO Teste","email":"ceo@teste.com","role":"CEO"}}
+TOKEN_CEO: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZUlkIjoxMywiZW1haWwiOiJjZW9AdGVzdGUuY29tIiwicm9sZSI6IkNFTyIsImlhdCI6MTc5NDIyMjI2MiwiZXhwIjoxNzk0ODI3MDYyfQ.sSEFQU75T5U9aaXJL-XJLkZTPczsApci9As71zQQ6Nc
+
+{"id":4,"name":"Feijoada","description":"Prato tradicional brasileiro","price":45,"available":true}
+DISH_ID: 4
+
+--- GET /menu (listar) ---
+Total: 3 Pagina: 1 de 1
+
+--- GET /menu/public (sem autenticacao) ---
+Pratos disponiveis: 3
+
+--- GET /menu/:id ---
+{"id":4,"name":"Feijoada","description":"Prato tradicional brasileiro","price":45,"available":true}
+--- PUT /menu/:id (como CEO) ---
+{"id":4,"name":"Feijoada Completa","description":"Prato tradicional brasileiro","price":50,"available":true}
+
+==============================================
+  3. INGREDIENTES (ingredientRoutes)
+==============================================
+
+--- POST /ingredients (como Manager) ---
+{"id":3,"name":"Feijao preto"}
+ING_ID: 3
+
+--- GET /ingredients (listar) ---
+Total: 2
+
+--- GET /ingredients/:id ---
+{"id":3,"name":"Feijao preto","quantity":[]}
+--- PUT /ingredients/:id (como Manager) ---
+{"id":3,"name":"Feijao preto tipo 1"}
+
+==============================================
+  4. STOCK (stockRoutes)
+==============================================
+
+--- PUT /stock/:ingredientId (como Manager) ---
+{"id":2,"ingredientId":3,"quantity":10,"unit":"kg","minQuantity":2}
+--- GET /stock/:ingredientId ---
+{"id":2,"ingredientId":3,"quantity":10,"unit":"kg","minQuantity":2,"ingredient":{"id":3,"name":"Feijao preto tipo 1"}}
+--- GET /stock (listar) ---
+Total: 2
+
+--- GET /stock/low (alerta estoque baixo) ---
+Itens com estoque baixo: 0
+
+
+==============================================
+  5. RECEITAS (recipeRoutes)
+==============================================
+
+--- POST /recipes (como Manager) ---
+{"id":1,"ingredientId":3,"dishId":4,"quantity":0.5,"ingredient":{"id":3,"name":"Feijao preto tipo 1"},"dish":{"id":4,"name":"Feijoada Completa","description":"Prato tradicional brasileiro","price":50,"available":true}}
+REC_ID: 1
+
+--- GET /recipes (listar) ---
+Total: 1
+
+--- GET /recipes/:id ---
+{"id":1,"ingredientId":3,"dishId":4,"quantity":0.5,"ingredient":{"id":3,"name":"Feijao preto tipo 1"},"dish":{"id":4,"name":"Feijoada Completa","description":"Prato tradicional brasileiro","price":50,"available":true}}
+--- GET /recipes/dish/:dishId ---
+Receitas do prato: 1
+
+--- PUT /recipes/:id (como Manager) ---
+{"id":1,"ingredientId":3,"dishId":4,"quantity":0.7,"ingredient":{"id":3,"name":"Feijao preto tipo 1"},"dish":{"id":4,"name":"Feijoada Completa","description":"Prato tradicional brasileiro","price":50,"available":true}}
+
+==============================================
+  6. CLIENTES (clientRoutes)
+==============================================
+
+--- POST /clients (como Manager) ---
+{"error":"Email já cadastrado."}
+CLIENT_ID: undefined
+
+--- GET /clients (listar) ---
+Total: 1
+
+--- GET /clients/:id ---
+{"error":"ID inválido."}
+--- PUT /clients/:id (como Manager) ---
+{"error":"ID inválido."}
+
+==============================================
+  7. PEDIDOS (orderRoutes)
+==============================================
+
+--- POST /orders (como Atendente) ---
+{"error":"Unexpected token 'u', ...\"clientId\":undefined,\"... is not valid JSON","stack":"SyntaxError: Unexpected token 'u', ...\"clientId\":undefined,\"... is not valid JSON\n    at JSON.parse (<anonymous>)\n    at parse (C:\\Users\\cg3037193\\Desktop\\C-L_Sabores\\c-l_sabores-api\\node_modules\\body-parser\\lib\\types\\json.js:93:21)\n    at C:\\Users\\cg3037193\\Desktop\\C-L_Sabores\\c-l_sabores-api\\node_modules\\body-parser\\lib\\read.js:194:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:214:14)\n    at invokeCallback (C:\\Users\\cg3037193\\Desktop\\C-L_Sabores\\c-l_sabores-api\\node_modules\\raw-body\\index.js:238:16)\n    at done (C:\\Users\\cg3037193\\Desktop\\C-L_Sabores\\c-l_sabores-api\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (C:\\Users\\cg3037193\\Desktop\\C-L_Sabores\\c-l_sabores-api\\node_modules\\raw-body\\index.js:287:7)\n    at IncomingMessage.emit (node:events:508:28)\n    at endReadableNT (node:internal/streams/readable:1701:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)","details":null}
+ORDER_ID: undefined
+
+--- GET /orders (listar) ---
+Total: 1
+
+--- GET /orders/:id ---
+{"error":"ID inválido."}
+--- PATCH /orders/:id/status (como Manager) ---
+{"error":"ID inválido."}
+--- PATCH /orders/:id/cancel (como Manager) ---
+Criado pedido undefined para cancelar
+{"error":"ID inválido."}
+
+==============================================
+  8. TESTES DE ERRO / VALIDACAO
+==============================================
+
+--- GET /menu/99999 (inexistente - 404) ---
+{"error":"Prato não encontrado."}
+--- POST /orders (cliente inexistente - 404) ---
+{"error":"Cliente não encontrado."}
+--- POST /orders (items vazios - 400) ---
+{"error":"Items é obrigatório e deve conter pelo menos um item."}
+--- PATCH /orders/:id/status (status invalido - 400) ---
+{"error":"ID inválido."}
+
+==============================================
+  9. ROTA DE STATUS
+==============================================
+
+--- GET /status ---
+{"status":"API Online - Projeto Semana 1"}
+
+==============================================
+  FIM DOS TESTES
+==============================================
