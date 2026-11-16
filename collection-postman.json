@@ -1,0 +1,699 @@
+{
+  "info": {
+    "name": "C-L Sabores API - Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "c-l-sabores-collection-final"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" },
+    { "key": "menuId", "value": "" },
+    { "key": "clientId", "value": "" },
+    { "key": "ingredientId", "value": "" },
+    { "key": "orderId", "value": "" },
+    { "key": "recipeId", "value": "" },
+    { "key": "stockIngredientId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Status",
+      "item": [
+        {
+          "name": "GET /status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/status"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Autenticação",
+      "item": [
+        {
+          "name": "POST /auth/register (sucesso)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Funcionário Teste\",\n  \"email\": \"funcionario.teste@email.com\",\n  \"senha\": \"senha123\",\n  \"tel\": \"11999999999\",\n  \"role\": \"Attendant\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/register"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 no cadastro de funcionário', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Retorna dados do funcionário sem senha', function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.employee).to.be.an('object');",
+                  "  pm.expect(json.employee.password).to.be.undefined;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "POST /auth/login (sucesso)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"funcionario.teste@email.com\",\n  \"senha\": \"senha123\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 no login', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Retorna token JWT', function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.token).to.be.a('string');",
+                  "  pm.expect(json.token.length).to.be.above(0);",
+                  "  pm.environment.set('token', json.token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "POST /auth/login (erro - credenciais inválidas)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"naoexiste@email.com\",\n  \"senha\": \"senhaerrada\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401 em credenciais inválidas', function () {",
+                  "  pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cardápio (Menu)",
+      "item": [
+        {
+          "name": "POST /menu (sucesso)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Prato Teste\",\n  \"description\": \"Um prato delicioso para testes\",\n  \"price\": 35,\n  \"available\": true\n}"
+            },
+            "url": "{{baseUrl}}/menu"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 ao cadastrar prato', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Salva o id do prato criado', function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.id).to.be.a('number');",
+                  "  pm.environment.set('menuId', json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "GET /menu (sucesso)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/menu"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 na listagem do cardápio', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Retorna array de pratos', function () {",
+                  "  pm.expect(pm.response.json()).to.have.property('data').that.is.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "GET /menu/:id (sucesso)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/menu/{{menuId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 ao buscar prato por id', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('O id retornado é o solicitado', function () {",
+                  "  pm.expect(pm.response.json().id).to.equal(parseInt(pm.environment.get('menuId')));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "PUT /menu/:id (sucesso)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Prato Teste Atualizado\",\n  \"description\": \"Descrição atualizada\",\n  \"price\": 40\n}"
+            },
+            "url": "{{baseUrl}}/menu/{{menuId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 ao atualizar prato', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "GET /menu/:id (erro - ID inválido na URL)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/menu/abc"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 com ID inválido na URL', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "  pm.expect(pm.response.json()).to.have.property('erro');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "POST /menu (erro - dados inválidos)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"A\",\n  \"description\": \"\",\n  \"price\": -10\n}"
+            },
+            "url": "{{baseUrl}}/menu"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 com dados inválidos', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "  pm.expect(pm.response.json()).to.have.property('erro');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "DELETE /menu/:id (sucesso)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/menu/{{menuId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 ao remover prato', function () {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Clientes",
+      "item": [
+        {
+          "name": "POST /clients (sucesso)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cliente Teste\",\n  \"email\": \"cliente.teste@email.com\",\n  \"tel\": \"11888888888\"\n}"
+            },
+            "url": "{{baseUrl}}/clients"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 ao cadastrar cliente', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Salva o id do cliente criado', function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.id).to.be.a('number');",
+                  "  pm.environment.set('clientId', json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "GET /clients/:id (sucesso)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/clients/{{clientId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 ao buscar cliente por id', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "GET /clients/:id (erro - ID inválido)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/clients/xyz"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 com ID inválido na URL', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "  pm.expect(pm.response.json()).to.have.property('erro');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Ingredientes",
+      "item": [
+        {
+          "name": "POST /ingredients (sucesso)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ingrediente Teste\"\n}"
+            },
+            "url": "{{baseUrl}}/ingredients"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 ao cadastrar ingrediente', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Salva o id do ingrediente criado', function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.id).to.be.a('number');",
+                  "  pm.environment.set('ingredientId', json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "GET /ingredients/:id (erro - ID inválido)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/ingredients/-1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 com ID negativo na URL', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "  pm.expect(pm.response.json()).to.have.property('erro');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Estoque",
+      "item": [
+        {
+          "name": "PUT /stock/:ingredientId (sucesso)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 10,\n  \"unit\": \"kg\",\n  \"minQuantity\": 2\n}"
+            },
+            "url": "{{baseUrl}}/stock/{{ingredientId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 ao atualizar estoque', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Salva o id do ingrediente do estoque', function () {",
+                  "  pm.environment.set('stockIngredientId', pm.environment.get('ingredientId'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "GET /stock/low (sucesso)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/stock/low"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 na consulta de estoque baixo', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Receitas",
+      "item": [
+        {
+          "name": "POST /recipes (sucesso)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ingredientId\": {{ingredientId}},\n  \"dishId\": {{menuId}},\n  \"quantity\": 0.2\n}"
+            },
+            "url": "{{baseUrl}}/recipes"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 ao cadastrar receita', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Salva o id da receita criada', function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.id).to.be.a('number');",
+                  "  pm.environment.set('recipeId', json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "GET /recipes/dish/:dishId (erro - ID inválido)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/recipes/dish/abc"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 com dishId inválido na URL', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "  pm.expect(pm.response.json()).to.have.property('erro');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pedidos",
+      "item": [
+        {
+          "name": "POST /orders (sucesso)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": {{clientId}},\n  \"items\": [\n    { \"itemId\": {{menuId}}, \"quantity\": 2 }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/orders"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 ao cadastrar pedido', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Salva o id do pedido criado', function () {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.id).to.be.a('number');",
+                  "  pm.environment.set('orderId', json.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "GET /orders/:id (sucesso)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/orders/{{orderId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 ao buscar pedido por id', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "PATCH /orders/:id/status (sucesso)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Preparing\"\n}"
+            },
+            "url": "{{baseUrl}}/orders/{{orderId}}/status"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 ao atualizar status do pedido', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "GET /orders/:id (erro - ID inválido)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/orders/abc"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 com ID inválido na URL', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "  pm.expect(pm.response.json()).to.have.property('erro');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    }
+  ]
+}
