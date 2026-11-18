@@ -58,6 +58,7 @@ model Menu {
   id          Int       @id @default(autoincrement())
   name        String
   description String
+  category    String    @default("Prato Principal")
   price       Int
   available   Boolean   @default(true)
   orders      OrderItem[]

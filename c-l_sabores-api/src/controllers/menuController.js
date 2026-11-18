@@ -65,7 +65,7 @@ async function getById(req, res) {
  */
 async function create(req, res) {
   try {
-    const { name, description, price, available } = req.body;
+    const { name, description, category, price, available } = req.body;
 
     if (!name || !description || price === undefined || price === null) {
       return res.status(400).json({
@@ -82,6 +82,7 @@ async function create(req, res) {
       data: {
         name: String(name).trim(),
         description: String(description).trim(),
+        category: String(category || 'Prato Principal').trim(),
         price: priceInt,
         available: available !== false, // default true
       },
@@ -110,7 +111,7 @@ async function update(req, res) {
       return res.status(404).json({ error: 'Prato não encontrado.' });
     }
 
-    const { name, description, price, available } = req.body;
+    const { name, description, category, price, available } = req.body;
     const data = {};
 
     if (name !== undefined) {
@@ -127,6 +128,10 @@ async function update(req, res) {
         return res.status(400).json({ error: 'Descrição não pode ser vazia.' });
       }
       data.description = descTrim;
+    }
+
+    if (category !== undefined) {
+      data.category = String(category).trim() || 'Prato Principal';
     }
 
     if (price !== undefined) {

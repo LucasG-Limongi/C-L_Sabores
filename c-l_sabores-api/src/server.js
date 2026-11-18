@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const { loadConfig } = require('./config');
 const errorHandler = require('./middlewares/errorHandler');
 const logger = require('./middlewares/logger');
@@ -17,6 +18,9 @@ const app = express();
 const PORTA = config.port;
 
 app.use(express.json());
+app.use(cors());
+
+app.use(logger);
 
 app.get('/status', (_req, res) => {
   return res.json({ status: 'API Online - Projeto Semana 1' });
